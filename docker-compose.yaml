@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network  # Ensure network is correctly referenced
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.4.3
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - app-network  # Ensure network is correctly referenced
+
+  # ollama:
+  #   image: ollama/ollama
+  #   container_name: ollama
+  #   volumes:
+  #     - ollama:/root/.ollama
+  #   ports:
+  #     - "11434:11434"
+  #   networks:
+  #     - app-network  # Ensure network is correctly referenced
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_HOST: postgres  # Ensure POSTGRES_HOST points to the service name
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      DATA_PATH: "Data/data.csv"
+    ports:
+      - "${APP_PORT:-5000}:5000"
+    depends_on:
+      - postgres
+    networks:
+      - app-network  # Ensure network is correctly referenced
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_SECRET_KEY: ${GRAFANA_SECRET_KEY:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_ALLOW_ORG_CREATE: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+    depends_on:
+      - postgres
+    networks:
+      - app-network  # Ensure network is correctly referenced
+
+volumes:
+  postgres_data:
+  grafana_data:
+  # ollama:
+
+networks:
+  app-network:  # Define the network globally
+    driver: bridge
