@@ -212,6 +212,20 @@ After that, start the application (and the database) again.
 
 When the application is running, we can start using it.
 
+### Streamlit 
+
+To run the streamlit app:
+
+```bash
+pipenv streamlit run streamlit_app.py
+```
+
+You can now view your Streamlit app in your browser.
+
+<p align="center">
+  <img src="images/streamlit_app.png">
+</p>
+
 ### CLI
 
 We built an interactive CLI application using
