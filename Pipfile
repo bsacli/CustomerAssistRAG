@@ -12,6 +12,7 @@ psycopg2-binary = "*"
 python-dotenv = "*"
 gunicorn = "*"
 huggingface_hub = "*"
+streamlit = "*"
 
 [dev-packages]
 tqdm = "*"
